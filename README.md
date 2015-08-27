@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Instagram Demographics Analysis (IDA)
 Warren Lau, August 2015
 
