@@ -1,0 +1,58 @@
+sql queries
+
+
+CREATE MATERIALIZED VIEW augmented_plat AS
+SELECT *, TO_TIMESTAMP(CAST(time as bigint)) as timestamp, EXTRACT(year FROM TO_TIMESTAMP(CAST(time as bigint))) as year, EXTRACT(month FROM TO_TIMESTAMP(CAST(time as bigint))) as month, EXTRACT(day FROM TO_TIMESTAMP(CAST(time as bigint))) as day, EXTRACT(DOW FROM TO_TIMESTAMP(CAST(time as bigint))) as dow, EXTRACT(hour FROM TO_TIMESTAMP(CAST(time as bigint))) as hour
+FROM plat 
+ORDER BY photo_id;
+
+
+CREATE MATERIALIZED VIEW uag_join_aug_plat AS
+SELECT photo_id, lat, lng, uag.user_id, action, time, timestamp, year, month, day, 
+dow, hour, age_bucket, age_avg, gender_bucket
+FROM uag 
+JOIN augmented_plat
+ON uag.user_id = augmented_plat.user_id
+
+
+COPY (SELECT * FROM uag_join_aug_plat) 
+TO '/home/ubuntu/DSI_project/uag_join_aug_plat.csv' DELIMITER ',' CSV HEADER;
+
+
+CREATE MATERIALIZED VIEW avg_photo_taken_over_time AS
+SELECT user_id, COUNT(*) AS no_photos_taken, EXTRACT(day FROM 
+(MAX(timestamp) - MIN(timestamp))) AS time_diff
+FROM uag_join_aug_plat
+WHERE action = 'own'
+GROUP BY user_id
+ORDER BY time_diff DESC;
+
+COPY (SELECT * FROM avg_photo_taken_over_time) 
+TO '/home/ubuntu/DSI_project/avg_photo_taken_over_time.csv' DELIMITER ',' CSV HEADER;
+
+
+CREATE MATERIALIZED VIEW uag_join_aug_plat_pst AS
+SELECT EXTRACT(year FROM (timestamp - interval '7 hour')) as year, EXTRACT(month FROM (timestamp - interval '7 hour')) as month, EXTRACT(day FROM (timestamp - interval '7 hour')) as day, EXTRACT(DOW FROM (timestamp - interval '7 hour')) as dow, EXTRACT(hour FROM (timestamp - interval '7 hour')) as hour, timestamp - interval '7 hour' AS pst, photo_id, lat, lng, user_id, action, age_bucket, age_avg, gender_bucket
+FROM uag_join_aug_plat; 
+
+
+COPY (SELECT * FROM uag_join_aug_plat_pst) 
+TO '/home/ubuntu/DSI_project/uag_join_aug_plat_pst.csv' DELIMITER ',' CSV HEADER;
+
+
+CREATE MATERIALIZED VIEW uag_join_aug_plat_pst_cat AS
+SELECT *, 
+	   CASE WHEN age_bucket = '(0, 2)' THEN 'child'
+	   		WHEN age_bucket = '(4, 6)' THEN 'child'
+	   		WHEN age_bucket = '(8, 12)' THEN 'child'
+	   		WHEN age_bucket = '(15, 20)' THEN 'adult'
+	   		WHEN age_bucket = '(25, 32)' THEN 'adult'
+	   		WHEN age_bucket = '(38, 43)' THEN 'adult'
+	   		WHEN age_bucket = '(48, 53)' THEN 'adult'
+	   		WHEN age_bucket = '(60, 100)' THEN 'senior'
+	   END AS age_cat
+FROM uag_join_aug_plat_pst;
+
+
+COPY (SELECT * FROM uag_join_aug_plat_pst_cat) 
+TO '/home/ubuntu/DSI_project/uag_join_aug_plat_pst_cat.csv' DELIMITER ',' CSV HEADER;

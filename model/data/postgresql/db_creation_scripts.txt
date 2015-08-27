@@ -1,0 +1,15 @@
+Creating databases
+
+CREATE TABLE locations (
+    id    int,
+    action	  varchar(9),
+    lat   float,
+    lng   float,
+    photoid   varchar(30),
+    time   int,
+    userid    int
+);
+
+,action,latitude,longitude,photo_id,time,user_id
+
+COPY locations FROM '/home/ubuntu/DSI_project/sf_location_photoid_lat_lng_userid_action_time_table.csv' CSV;
