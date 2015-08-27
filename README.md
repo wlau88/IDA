@@ -185,7 +185,3 @@ I0826 18:28:24.684051  4634 solver.cpp:264] Iteration 300, Testing net (#0)
 I0826 18:28:56.219703  4634 solver.cpp:315]     Test net output #0: accuracy = 0.4328
 I0826 18:28:56.219802  4634 solver.cpp:315]     Test net output #1: loss = 3.1341 (* 1 = 3.1341 loss)
 ```
-=======
-# IDA
-Instagram Demographics Analysis (IDA)
->>>>>>> 3db370785b70aeedc4742d4b534035627c1f95de
